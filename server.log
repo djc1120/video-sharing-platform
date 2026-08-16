@@ -1,0 +1,5 @@
+
+> video-sharing-platform@0.0.1 server
+> node server/index.js
+
+Video service running on http://localhost:4000

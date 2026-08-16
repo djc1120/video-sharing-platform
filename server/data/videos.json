@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1784603865797,
+    "title": "butterfly",
+    "author": "Creator",
+    "views": 43521,
+    "thumbnail": "https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&w=500&q=60",
+    "src": "https://www.google.com/search?sca_esv=a4aa018d8e4a65dc&rlz=1C5CHFA_enUS879US879&sxsrf=APpeQnt_Xz1RQDToTbrm2kvrz-Ai5JDJvA:1784603849940&udm=7&fbs=ABfTbFVyMZGZf1hfvX9uKjN_-G8cxpBkeIeqYwoCbfNVc4vKE96grTuFPBRY0pmGfUF9JygJncsADHGm-b3q6bUaRXpZ6bJS3FhrBie2QLjwDmUO9fAU2tdZ3E0pw5cVTubF0kZojYTEQeECZSn6CGGX5OwGV1IJfFBSW1fgAevtd69ds0cqtg-rjsr_kXqeu87rnaSM-Idfc-Wg-6uDhdhX_3cKuTqOCw&q=butterfly+videos&sa=X&sqi=2&ved=2ahUKEwjCk6m05-KVAxUO48kDHQhtFG8QtKgLegQIFBAB&biw=1720&bih=1323&dpr=1#fpstate=ive&vld=cid:81b9b0ad,vid:xT6UsQwZyy0,st:0",
+    "description": "Uploaded to the platform.",
+    "createdAt": "2026-07-21T03:17:45.797Z"
+  },
+  {
+    "id": 1784510465037,
+    "title": "aaa",
+    "author": "Creator",
+    "views": 58424,
+    "thumbnail": "https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&w=500&q=60",
+    "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    "description": "Uploaded to the platform.",
+    "createdAt": "2026-07-20T01:21:05.037Z"
+  },
+  {
+    "id": 1,
+    "title": "Mountain Sunrise",
+    "author": "Open Media",
+    "views": 23542,
+    "thumbnail": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=500&q=60",
+    "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    "description": "Relaxing sunrise footage over mountains with ambient sound.",
+    "createdAt": "2026-07-19T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "City Timelapse",
+    "author": "Urban Lens",
+    "views": 18904,
+    "thumbnail": "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=500&q=60",
+    "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    "description": "Fast-paced skyline timelapse from sunset into night.",
+    "createdAt": "2026-07-19T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "Street Food Tour",
+    "author": "Cuisine Crew",
+    "views": 41783,
+    "thumbnail": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=60",
+    "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    "description": "A delicious walk through the best street food in the city.",
+    "createdAt": "2026-07-19T00:00:00.000Z"
+  }
+]
