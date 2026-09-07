@@ -98,18 +98,18 @@ function App() {
     }
   };
 
-  const handleEditVideo = (video) => {
-    setForm({
-      title: video.title,
-      author: video.author,
-      thumbnail: video.thumbnail,
-      src: video.src,
-      description: video.description,
-    });
-    setIsEditing(true);
-    setEditingId(video.id);
-    setFormError(null);
-  };
+const handleEditVideo = (video) => {
+  setForm({
+    title: video.title || '',
+    author: video.author || '',
+    thumbnail: video.thumbnail || '',
+    src: video.src || '',
+    description: video.description || '',
+  });
+  setIsEditing(true);
+  setEditingId(video.id);
+  setFormError(null);
+};
 
   const handleCancelEdit = () => {
     setIsEditing(false);

@@ -1,15 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getVideos, createVideo, updateVideo, deleteVideo } from './data/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const videosPath = path.join(__dirname, 'data', 'videos.json');
-
-const readVideos = () => JSON.parse(fs.readFileSync(videosPath, 'utf8'));
-const writeVideos = (videos) => fs.writeFileSync(videosPath, JSON.stringify(videos, null, 2));
 
 const app = express();
 app.use(cors());
@@ -17,19 +13,19 @@ app.use(express.json());
 
 app.get('/api/videos', (req, res) => {
   try {
-    const videos = readVideos();
+    const videos = getVideos();
     res.json(videos);
   } catch (error) {
     res.status(500).json({ error: 'Unable to load videos from storage.' });
   }
 });
 
+
+
 app.post('/api/videos', (req, res) => {
   try {
     const { title, author, thumbnail, src, description } = req.body;
-    const videos = readVideos();
     const nextVideo = {
-      id: Date.now(),
       title: title || 'New Video',
       author: author || 'Creator',
       views: Math.floor(Math.random() * 90000) + 1000,
@@ -41,37 +37,30 @@ app.post('/api/videos', (req, res) => {
       createdAt: new Date().toISOString(),
     };
 
-    const updatedVideos = [nextVideo, ...videos];
-    writeVideos(updatedVideos);
-    res.status(201).json(nextVideo);
+    const createdVideo = createVideo(nextVideo);
+    res.status(201).json(createdVideo);
   } catch (error) {
     res.status(500).json({ error: 'Unable to save the video.' });
   }
 });
 
+
+
 app.put('/api/videos/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const { title, author, thumbnail, src, description } = req.body;
-    const videos = readVideos();
-    const videoIndex = videos.findIndex((v) => v.id === parseInt(id));
+    console.log('Updating video', id, ':', req.body);
+    
+    const updatedVideo = updateVideo(parseInt(id), req.body);
 
-    if (videoIndex === -1) {
+    if (!updatedVideo) {
       return res.status(404).json({ error: 'Video not found.' });
     }
 
-    videos[videoIndex] = {
-      ...videos[videoIndex],
-      title: title || videos[videoIndex].title,
-      author: author || videos[videoIndex].author,
-      thumbnail: thumbnail || videos[videoIndex].thumbnail,
-      src: src || videos[videoIndex].src,
-      description: description || videos[videoIndex].description,
-    };
-
-    writeVideos(videos);
-    res.json(videos[videoIndex]);
+    console.log('Updated:', updatedVideo);
+    res.json(updatedVideo);
   } catch (error) {
+    console.error('Update video error:', error.message);
     res.status(500).json({ error: 'Unable to update the video.' });
   }
 });
@@ -79,17 +68,17 @@ app.put('/api/videos/:id', (req, res) => {
 app.delete('/api/videos/:id', (req, res) => {
   try {
     const { id } = req.params;
-    const videos = readVideos();
-    const videoIndex = videos.findIndex((v) => v.id === parseInt(id));
 
-    if (videoIndex === -1) {
+    const deletedVideo = deleteVideo(parseInt(id));
+
+    if (!deletedVideo) {
       return res.status(404).json({ error: 'Video not found.' });
     }
 
-    const deletedVideo = videos[videoIndex];
-    const updatedVideos = videos.filter((v) => v.id !== parseInt(id));
-    writeVideos(updatedVideos);
-    res.json({ message: 'Video deleted.', video: deletedVideo });
+    res.json({
+      message: 'Video deleted.',
+      video: deletedVideo,
+    });
   } catch (error) {
     res.status(500).json({ error: 'Unable to delete the video.' });
   }
