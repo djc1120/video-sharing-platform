@@ -12,7 +12,29 @@ function App() {
   const [formError, setFormError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [agentMessage, setAgentMessage] = useState('');
+  const [agentAnswer, setAgentAnswer] = useState('');
+
+
+
+  async function askAgent() {
+  const response = await fetch('/api/agent', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: agentMessage,
+    }),
+  });
+
+  const data = await response.json();
+
+  setAgentAnswer(data.answer);
+}
  
+
+
   useEffect(() => {
     const fetchVideos = async () => {
       try {
@@ -254,6 +276,21 @@ const handleEditVideo = (video) => {
                 )}
               </div>
             </form>
+            
+              <div>
+              <input
+                value={agentMessage}
+                onChange={(e) => setAgentMessage(e.target.value)}
+                placeholder="Ask the agent..."
+              />
+
+              <button onClick={askAgent}>
+                Ask Agent
+              </button>
+
+              <p>{agentAnswer}</p>
+            </div>
+
           </div>
         </aside>
       </main>
