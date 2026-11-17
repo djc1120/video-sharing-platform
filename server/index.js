@@ -1,164 +1,17 @@
 import 'dotenv/config';
-import OpenAI from 'openai';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getVideos, createVideo, updateVideo, deleteVideo } from './data/db.js';
+import { getVideos, createVideo, updateVideo, deleteVideo, getConversations, createConversation } from './data/db.js';
+import { askLLM } from './agent/agent.js';
 
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const toolFunctions = {
-  getVideos: () => getVideos(),
-  createVideo: (args) => createVideo(args),
-  updateVideo: (args) => {
-    const { id, ...video } = args;
-    return updateVideo(id, video);
-  },
-  deleteVideo: (args) => deleteVideo(args.id),
-};
-
-const tools = [
-      {
-        type: 'function',
-        name: 'getVideos',
-        description: 'Get all videos from the video database.',
-        parameters: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
-        type: 'function',
-        name: 'createVideo',
-        description: 'Create a new video in the video database.',
-        parameters: {
-          type: 'object',
-          properties: {
-            title: {
-              type: 'string',
-              description: 'The title of the video.',
-            },
-            author: {
-              type: 'string',
-              description: 'The author of the video.',
-            },
-            thumbnail: {
-              type: 'string',
-              description: 'The thumbnail image URL.',
-            },
-            src: {
-              type: 'string',
-              description: 'The video URL.',
-            },
-            description: {
-              type: 'string',
-              description: 'A description of the video.',
-            },
-          },
-          required: ['title', 'src'],
-          description:
-                      'Create a new video in the video database. Only title and src are required. Author, thumbnail, and description are optional. If optional fields are not provided, call this tool anyway and the application will provide default values.',
-        },
-      },
-      {
-        type: 'function',
-        name: 'updateVideo',
-        description: 'Update an existing video in the video database.',
-        parameters: {
-          type: 'object',
-          properties: {
-            id: {
-              type: 'number',
-              description: 'The ID of the video to update.',
-            },
-            title: {
-              type: 'string',
-              description: 'The new title of the video.',
-            },
-            author: {
-              type: 'string',
-              description: 'The new author of the video.',
-            },
-            thumbnail: {
-              type: 'string',
-              description: 'The new thumbnail image URL.',
-            },
-            src: {
-              type: 'string',
-              description: 'The new video URL.',
-            },
-            description: {
-              type: 'string',
-              description: 'The new description of the video.',
-            },
-          },
-          required: ['id'],
-        },
-      },
-      {
-        type: 'function',
-        name: 'deleteVideo',
-        description: 'Delete an existing video from the video database.',
-        parameters: {
-          type: 'object',
-          properties: {
-            id: {
-              type: 'number',
-              description: 'The ID of the video to delete.',
-            },
-          },
-          required: ['id'],
-        },
-      }
-];
-
-async function askLLM(message) {
-  const response = await openai.responses.create({
-    model: 'gpt-5.4-mini',
-    input: message,
-    tools: tools,
-  });
-
-  let currentResponse = response;
-
-  console.log(response.output);
 
 
-  while (true) {
-    const toolCall = currentResponse.output.find(
-    (item) => item.type === 'function_call'
-  );
 
-  if (!toolCall) {
-    return currentResponse.output_text;
-  }
 
-  const toolFunction = toolFunctions[toolCall.name];
-  const args = JSON.parse(toolCall.arguments);
-  const result = toolFunction(args);
 
-  const nextResponse = await openai.responses.create({
-    model: 'gpt-5.6-luna',
-    previous_response_id: currentResponse.id,
-    input: [
-      {
-        type: 'function_call_output',
-        call_id: toolCall.call_id,
-        output: JSON.stringify(result),
-      },
-    ],
-    tools,
-  });
-
-  currentResponse = nextResponse;
-
-  }
-  
-}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -166,6 +19,32 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+
+app.get('/api/conversations', (req, res) => {
+  try {
+    const conversations = getConversations();
+    res.json(conversations);
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to load conversations from storage.' });
+  }
+});
+
+
+app.post('/api/conversations', (req, res) => {
+  try {
+    const { title } = req.body;
+
+    const conversationId = createConversation(title);
+
+    // What should we send back to React?
+    res.status(201).json({ id: conversationId, title });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to create conversation.' });
+  }
+});
+
+
 
 app.get('/api/videos', (req, res) => {
   try {
@@ -178,9 +57,14 @@ app.get('/api/videos', (req, res) => {
 
 app.post('/api/agent', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { conversationId, message } = req.body;
+    if (!conversationId) {
+      return res.status(400).json({
+        error: 'conversationId is required.'
+      });
+    }
 
-    const answer = await askLLM(message);
+    const answer = await askLLM(conversationId, message);
 
     res.json({
       answer: answer

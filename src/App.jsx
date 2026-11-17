@@ -14,16 +14,65 @@ function App() {
   const [editingId, setEditingId] = useState(null);
   const [agentMessage, setAgentMessage] = useState('');
   const [agentAnswer, setAgentAnswer] = useState('');
+  const [conversationId, setConversationId] = useState(null);
+  const [conversations, setConversations] = useState([]);
 
 
 
-  async function askAgent() {
+
+
+
+async function loadConversations() {
+  const response = await fetch('/api/conversations');
+  const data = await response.json();
+
+  setConversations(data);
+  setConversationId(data[0]?.id ?? null);
+}
+
+
+
+useEffect(() => {
+  loadConversations();
+}, []);
+
+
+
+
+
+async function createNewConversation() {
+  try {
+    const response = await fetch('/api/conversations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title: 'New Conversation' }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create conversation');
+    }
+
+    const data = await response.json();
+    setConversationId(data.id);
+
+    console.log('Created new conversation:', data);
+  } catch (error) {
+    console.error('Error creating conversation:', error);
+  }
+}
+
+
+
+async function askAgent() {
   const response = await fetch('/api/agent', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+        conversationId: conversationId,
       message: agentMessage,
     }),
   });
@@ -278,6 +327,19 @@ const handleEditVideo = (video) => {
             </form>
             
               <div>
+
+              <button onClick={createNewConversation}>
+                New Chat
+              </button>
+
+              {conversations.map((conversation) => {
+                return (
+                  <button key={conversation.id}>
+                    {conversation.title}
+                  </button>
+                );
+              })}
+              
               <input
                 value={agentMessage}
                 onChange={(e) => setAgentMessage(e.target.value)}

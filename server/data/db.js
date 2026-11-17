@@ -2,6 +2,155 @@ import Database from "better-sqlite3";
 
 const db = new Database("videos.db");
 
+
+
+
+
+
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS memories (
+    id INTEGER PRIMARY KEY,
+    content TEXT NOT NULL,
+    embedding TEXT,
+    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+
+
+export function updateConversationSummary(conversationId, summary, summarizedThroughMessageId) {
+  const stmt = db.prepare(`
+    UPDATE conversations
+    SET summary = ?,
+        summarizedThroughMessageId = ?
+    WHERE id = ?
+  `);
+
+  const result = stmt.run(summary, summarizedThroughMessageId, conversationId);
+
+  if (result.changes > 0) {
+    return db.prepare('SELECT * FROM conversations WHERE id = ?').get(conversationId);
+  }
+  return null;
+}
+
+
+
+export function createMemory(content, embedding) {
+  const embeddingText = JSON.stringify(embedding);
+
+  const stmt = db.prepare(`
+    INSERT INTO memories (content, embedding)
+    VALUES (?, ?)
+  `);
+
+  const result = stmt.run(content, embeddingText);
+
+  return result.lastInsertRowid;
+}
+
+
+export function getMemories() {
+    return db
+        .prepare("SELECT * FROM memories")
+        .all();
+}
+
+
+export function updateMemory(id, content, embedding) {
+    const embeddingText = JSON.stringify(embedding);
+
+    const stmt = db.prepare(`
+        UPDATE memories
+        SET content = ?, embedding = ?
+        WHERE id = ?
+    `);
+
+    const result = stmt.run(content, embeddingText, id);
+
+    if (result.changes > 0) {
+        return db.prepare('SELECT * FROM memories WHERE id = ?').get(id);
+    }
+    return null;
+}
+
+
+
+
+
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS conversations (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    summary TEXT,
+    summarizedThroughMessageId INTEGER,
+    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+
+export function createConversation(title) {
+  const stmt = db.prepare(`
+    INSERT INTO conversations (title)
+    VALUES (?)
+  `);
+
+  const result = stmt.run(title);
+  return result.lastInsertRowid;
+}
+
+
+export function getConversations() {
+    return db
+        .prepare("SELECT * FROM conversations ORDER BY createdAt DESC")
+        .all();
+}
+
+
+export function getConversation(conversationId) {
+  return db
+    .prepare("SELECT * FROM conversations WHERE id = ?")
+    .get(conversationId);
+}
+
+
+
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY,
+    conversationId INTEGER NOT NULL,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+
+
+export function createMessage(conversationId, role, content) {
+  const stmt = db.prepare(`
+    INSERT INTO messages (conversationId, role, content)
+    VALUES (?, ?, ?)
+  `);
+
+  const result = stmt.run(conversationId, role, content);
+}
+
+
+export function getMessages(conversationId) {
+  return db
+    .prepare(`
+      SELECT * FROM messages
+      WHERE conversationId = ?
+      ORDER BY id ASC
+    `)
+    .all(conversationId);
+}
+
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS videos (
     id INTEGER PRIMARY KEY,
@@ -15,7 +164,6 @@ db.exec(`
   );
 `
 );
-
 
 
 export function getVideos() {
@@ -108,6 +256,20 @@ export function updateVideo(id, video) {
     return null;    
 }
 
+export function deleteMemory(id) {
+const result = db
+  .prepare(`
+    DELETE FROM memories
+    WHERE id = ?
+  `)
+  .run(id);
+
+return result;
+}
+
+
+
+
 export function deleteVideo(id) {
     const video = db
         .prepare(`
@@ -132,6 +294,8 @@ export function deleteVideo(id) {
 }
 
 
-
-
 export default db;
+
+
+
+
